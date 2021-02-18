@@ -1,0 +1,18 @@
+{
+  "name": "say2file",
+  "version": "0.1.0",
+  "main": "say2file.js",
+  "scripts": {
+    "dev": "node say2file.js Hello there, this is Paul.",
+    "build": "pkg say2file.js -t latest -o say2file"
+  },
+  "author": "Paul Whittemore <dev@appurist.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "pkg": "^4.4.9"
+  },
+  "dependencies": {
+    "dotenv-defaults": "^2.0.1",
+    "ibm-watson": "^6.0.2"
+  }
+}
