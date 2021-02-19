@@ -1,4 +1,5 @@
 const fs = require('fs');
+const arg = require('arg');
 
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
 const { IamAuthenticator } = require('ibm-watson/auth');
@@ -9,44 +10,141 @@ require('dotenv-defaults/config');
 const IBMKEY = process.env.hasOwnProperty("IBMKEY") ? process.env["IBMKEY"] : null;
 const IBMURL = process.env.hasOwnProperty("IBMURL") ? process.env["IBMURL"] : null;
 
-const textToSpeech = new TextToSpeechV1({
-  authenticator: new IamAuthenticator({ apikey: IBMKEY }),
-  serviceUrl: IBMURL
-});
+function onError(err) {
+  console.error("Server error:", err.message);
+  process.exit(1);  //mandatory return code (as per the Node.js docs)
+}
 
-let args = process.argv.slice(1);
-if (args[0]?.endsWith('.js'))
-  args = args.slice(1);
+process.on('uncaughtException', onError);
 
-let line = args.join(' ');
-console.log(`Args: '${line}'`);
+let args;
+try {
+  args = arg({
+    // Types
+    '--key': String,     // --key <string> or --key=<string>
+    '--url': String,
+    '--file': String,
+    '--out': String,
+    '--type': String,
+    '--rate': Number,
+    '--voice': String,
+    '--split': Boolean,
 
-const params = {
-  text: line,
-  voice: 'en-US_MichaelV3Voice', // Optional voice
-  accept: 'audio/wav'
-};
+    '--help': Boolean,
+    '--verbose': Boolean,
+    '--version': Boolean,
 
-// Synthesize speech, correct the wav header, then save to disk
-// (wav header requires a file length, but this is unknown until after the header is already generated and sent)
-// note that `repairWavHeaderStream` will read the whole stream into memory in order to process it.
-// the method returns a Promise that resolves with the repaired buffer
-textToSpeech
-  .synthesize(params)
-  .then(response => {
-    const audio = response.result;
-    return textToSpeech.repairWavHeaderStream(audio);
-  })
-  .then(repairedFile => {
-    fs.writeFileSync('audio.wav', repairedFile);
-    console.log('audio.wav written with a corrected wav header');
-  })
-  .catch(err => {
-    console.log(err);
+    // Aliases
+    '-k': '--key',
+    '-u': '--url',
+    '-f': '--file',
+    '-o': '--out',
+    '-t': '--type',
+    '-r': '--rate',
+    '-w': '--voice',
+    '-s': '--split',
+    
+    '-v': '--version',
+    '-h': '--help',
+    '-?': '--help'
   });
+} catch (err) {
+  console.error(err.message);
+  process.exit(1);
+}
 
+let fileIn = args['--file'];
+let fileOut = args['--out'] || 'audio';
+let fileType = args['--type'] || 'wav';
+let rate = args['--rate'] || 44100;
+let voice = args['--voice'] || 'michael';
+let apikey = args['--key'] || IBMKEY;
+let apiURL = args['--url'] || IBMURL;
+let isSplit = args['--split'] || false;
+let line = args._.join(' ').trim();
 
-// or, using WebSockets
-//textToSpeech.synthesizeUsingWebSocket(params);
-// synthStream.pipe(fs.createWriteStream('./audio.ogg'));
-// see more information in examples/text_to_speech_websocket.js
+if (args['--version']) {
+  console.log("say2file version 1.0.218")
+  process.exit(1);
+}
+if (args['--help']) {
+  console.log("say2file [options] [optional text to convert to audio]");
+  console.log("Options: --file or -f with filename (input text file)")
+  console.log("Options: --split or -s (split the input text file into multiple output files)")
+  console.log("Options: --out or -o with rootname (produces rootname.type or rootname-nn.type)")
+  console.log("Options: --voice or -w (who: michael olivia kevin lisa allison henry james kate charlotte craig madison)")
+  console.log("Options: --type or -t (wav, mp3, mpeg, flac, ogg)")
+  console.log("Options: --key or -k with IBM Watson api key to use")
+  console.log("Options: --url or -k with IBM Watson service URL to use")
+  console.log("Options: --version or -v (show version))")
+  console.log("Options: --help or -h or -? (this help))")
+  process.exit(1);
+}
+
+let lines = [ ];
+if (line) {
+  lines = [ line ];
+} else
+if (fileIn) {
+  let text = fs.readFileSync(fileIn, {encoding:'utf8', flag:'r'});
+  if (isSplit) {
+    lines = text.split('\n');
+  } else {
+    lines = [text];
+  }
+} else {
+  process.exit(0); // no work
+}
+
+let fullVoice = voice;
+switch (voice.toLowerCase()) {
+  case '': fullVoice = 'en-US_MichaelV3Voice'; break;
+  case 'michael': fullVoice = 'en-US_MichaelV3Voice'; break;
+  case 'olivia': fullVoice = 'en-US_OliviaV3Voice'; break;
+  case 'henry': fullVoice = 'en-US_HenryV3Voice'; break;
+  case 'allison': fullVoice = 'en-US_AllisonV3Voice'; break;
+  case 'kevin': fullVoice = 'en-US_KevinV3Voice'; break;
+  case 'lisa': fullVoice = 'en-US_LisaV3Voice'; break;
+  case 'emily': fullVoice = 'en-US_EmilyV3Voice'; break;
+  case 'kate': fullVoice = 'en-GB_KateV3Voice'; break;
+  case 'charlotte': fullVoice = 'en-GB_CharlotteV3Voice'; break;
+  case 'james': fullVoice = 'en-GB_JamesV3Voice'; break;
+  case 'craig': fullVoice = 'en-AU_CraigVoice'; break;
+  case 'madison': fullVoice = 'en-AU_MadisonVoice'; break;
+  default: fullVoice = voice;
+}
+
+let count = 0;
+for (let text of lines) {
+  if (!text.trim()) continue;
+
+  const params = {
+    text: text,
+    voice: fullVoice,
+    accept: `audio/${fileType};rate=${rate}`
+  };
+  const textToSpeech = new TextToSpeechV1({
+    authenticator: new IamAuthenticator({ apikey }),
+    serviceUrl: apiURL
+  });
+  count++;
+
+  // Synthesize speech, correct the wav header, then save to disk
+  // (wav header requires a file length, but this is unknown until after the header is already generated and sent)
+  // note that `repairWavHeaderStream` will read the whole stream into memory in order to process it.
+  // the method returns a Promise that resolves with the repaired buffer
+  let outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
+  textToSpeech.synthesize(params)
+    .then(response => {
+      const audio = response.result;
+      return textToSpeech.repairWavHeaderStream(audio);
+    })
+    .then(repairedFile => {
+      fs.writeFileSync(outFileName, repairedFile);
+      console.log('Wrote: '+outFileName);
+    })
+    .catch(err => {
+      console.log(outFileName+": "+err);
+    });
+}
+  

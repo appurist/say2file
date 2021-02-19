@@ -72,3 +72,7 @@ say2file-macos
 example.cmd
 
 voices.cmd
+
+*.mpeg
+
+*.wav
