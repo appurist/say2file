@@ -70,14 +70,15 @@ if (args['--version']) {
 if (args['--help']) {
   console.log("say2file [options] [optional text to convert to audio]");
   console.log("Options: --file or -f with filename (input text file)")
-  console.log("Options: --split or -s (split the input text file into multiple output files)")
-  console.log("Options: --out or -o with rootname (produces rootname.type or rootname-nn.type)")
-  console.log("Options: --voice or -w (who: michael olivia kevin lisa allison henry james kate charlotte craig madison)")
-  console.log("Options: --type or -t (wav, mp3, mpeg, flac, ogg)")
-  console.log("Options: --key or -k with IBM Watson api key to use")
-  console.log("Options: --url or -k with IBM Watson service URL to use")
-  console.log("Options: --version or -v (show version))")
-  console.log("Options: --help or -h or -? (this help))")
+  console.log("         --split or -s (split the input text file into multiple output files)")
+  console.log("         --out or -o with rootname (produces rootname.type or rootname-n.type)")
+  console.log("         --voice or -w with who (michael olivia kevin lisa allison henry james kate charlotte craig madison)")
+  console.log("         --type or -t with type (wav, mp3, mpeg, flac, ogg)")
+  console.log("         --rate or -r with rate (sample rate, default is 44100)")
+  console.log("         --key or -k with IBM Watson api key to use")
+  console.log("         --url or -k with IBM Watson service URL to use")
+  console.log("         --version or -v (show version))")
+  console.log("         --help or -h or -? (this help))")
   process.exit(1);
 }
 
