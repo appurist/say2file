@@ -4,7 +4,10 @@
   "main": "say2file.js",
   "scripts": {
     "dev": "node say2file.js Hello there, this is Paul.",
-    "build": "pkg say2file.js -t latest -o say2file"
+    "build": "pkg say2file.js -t latest -o say2file",
+    "build:win": "pkg -t latest-win-x64 say2file.js -o say2file.exe",
+    "build:linux": "pkg -t latest-linux-x64 say2file.js -o say2file",
+    "build:mac": "pkg -t latest-macos-x64 say2file.js -o say2file-macos"    
   },
   "author": "Paul Whittemore <dev@appurist.com>",
   "license": "MIT",
