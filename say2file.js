@@ -63,7 +63,7 @@ let voice = args['--voice'] || 'michael';
 let apikey = args['--key'] || IBMKEY;
 let apiURL = args['--url'] || IBMURL;
 let isSplit = args['--split'] || false;
-let line = args._.join(' ').trim();
+let cmdline = args._.join(' ').trim();
 
 if (args['--version']) {
   console.log("say2file version "+version);
@@ -85,8 +85,8 @@ if (args['--help']) {
 }
 
 let lines = [ ];
-if (line) {
-  lines = [ line ];
+if (cmdline) {
+  lines = [ cmdline ];
 } else
 if (fileIn) {
   let text = fs.readFileSync(fileIn, {encoding:'utf8', flag:'r'});
@@ -118,8 +118,9 @@ switch (voice.toLowerCase()) {
 }
 
 let count = 0;
-for (let text of lines) {
-  if (!text.trim()) continue;
+for (let line of lines) {
+  let text = line.trim();
+  if (!text) continue;
 
   const params = {
     text: text,
