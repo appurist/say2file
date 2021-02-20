@@ -114,6 +114,9 @@ switch (voice.toLowerCase()) {
   case 'james': fullVoice = 'en-GB_JamesV3Voice'; break;
   case 'craig': fullVoice = 'en-AU_CraigVoice'; break;
   case 'madison': fullVoice = 'en-AU_MadisonVoice'; break;
+  case 'dieter': fullVoice = 'de-DE_DieterV3Voice'; break;
+  case 'erika': fullVoice = 'de-DE_ErikaV3Voice'; break;
+  case 'birgit': fullVoice = 'de-DE_BirgitV3Voice'; break;
   default: fullVoice = voice;
 }
 
