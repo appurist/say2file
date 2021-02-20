@@ -4,6 +4,8 @@ const arg = require('arg');
 const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
 const { IamAuthenticator } = require('ibm-watson/auth');
 
+const version = require('./package.json').version;
+
 // read .env and .env.defaults
 require('dotenv-defaults/config');
 
@@ -64,7 +66,7 @@ let isSplit = args['--split'] || false;
 let line = args._.join(' ').trim();
 
 if (args['--version']) {
-  console.log("say2file version 1.0.218")
+  console.log("say2file version "+version);
   process.exit(1);
 }
 if (args['--help']) {
