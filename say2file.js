@@ -121,6 +121,7 @@ let count = 0;
 for (let line of lines) {
   let text = line.trim();
   if (!text) continue;
+  if (text.startsWith('#')) continue;
 
   const params = {
     text: text,
