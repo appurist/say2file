@@ -13,11 +13,11 @@
   "author": "Paul Whittemore <dev@appurist.com>",
   "license": "MIT",
   "devDependencies": {
-    "pkg": "^4.4.9"
+    "pkg": "^4.5.1"
   },
   "dependencies": {
     "arg": "^5.0.0",
-    "dotenv-defaults": "^2.0.1",
-    "ibm-watson": "^6.0.2"
+    "dotenv-defaults": "^2.0.2",
+    "ibm-watson": "^6.1.1"
   }
 }
