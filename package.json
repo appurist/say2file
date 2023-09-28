@@ -5,19 +5,18 @@
   "scripts": {
     "dev": "node say2file.js Hello there, this is Paul.",
     "test": "node say2file.js -f sample.txt -s",
-    "build": "pkg say2file.js -t latest -o say2file",
-    "build:win": "pkg -t latest-win-x64 say2file.js -o say2file.exe",
-    "build:linux": "pkg -t latest-linux-x64 say2file.js -o say2file",
-    "build:mac": "pkg -t latest-macos-x64 say2file.js -o say2file-macos"
+    "build": "pkg --options no-warnings say2file.js -t latest -o say2file",
+    "build:win": "pkg --options no-warnings -t latest-win-x64 say2file.js -o say2file.exe",
+    "build:linux": "pkg --options no-warnings -t latest-linux-x64 say2file.js -o say2file",
+    "build:mac": "pkg --options no-warnings -t latest-macos-x64 say2file.js -o say2file-macos"
   },
   "author": "Paul Whittemore <dev@appurist.com>",
   "license": "MIT",
-  "devDependencies": {
-    "pkg": "^4.5.1"
-  },
+  "devDependencies": {},
   "dependencies": {
     "arg": "^5.0.0",
     "dotenv-defaults": "^2.0.2",
-    "ibm-watson": "^6.1.1"
+    "ibm-watson": "^6.1.1",
+    "pkg": "^5.8.1"
   }
 }

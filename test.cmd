@@ -1,1 +1,2 @@
-say2file -f sample.txt -s
+say2file -f sample.txt -s %*
+
