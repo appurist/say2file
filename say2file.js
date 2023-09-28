@@ -18,6 +18,7 @@ const IBMURL = process.env.hasOwnProperty("IBMURL") ? process.env["IBMURL"] : nu
 
 function onError(err) {
   console.error("Server error:", err.message);
+  if (err.stack) console.error(err.stack);
   process.exit(1);  //mandatory return code (as per the Node.js docs)
 }
 
