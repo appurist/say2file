@@ -37,6 +37,7 @@ try {
     '--rate': Number,
     '--voice': String,
     '--split': Boolean,
+    '--list': Boolean,   // list voices
 
     '--help': Boolean,
     '--verbose': Boolean,
@@ -52,6 +53,7 @@ try {
     '-r': '--rate',
     '-w': '--voice',
     '-s': '--split',
+    '-l': '--list',
 
     '-v': '--version',
     '-h': '--help',
@@ -103,126 +105,142 @@ if (args['--help']) {
   process.exit(1);
 }
 
-try {
+async function listElevenVoices()
+{
+  try {
+    const data = await eleven.listVoices();
+    if (data?.voices) {
+      for (let voice of data.voices) {
+        console.log(`  ${voice.voice_id}: "${voice.name}"`);
+      }
+    } else {
+      console.log("ElevenLabs voices: unknown");
+    }
+  } catch (err) {
+    console.log("listElevenVoices: " + err.message);
+  }
+}
+
+async function doWork() {
+  if (args['--list']) {
+    let rc = 0;
+
+    if (isEleven) {
+      await listElevenVoices();
+    } else {
+      console.log("Use IBM Watson voices: michael olivia kevin lisa allison henry james kate charlotte craig madison dieter erika birgit");
+    }
+    process.exit(0);
+  }
+
   let lines = [];
   if (cmdline) {
     lines = [cmdline];
   } else
-    if (fileIn) {
-      let text = fs.readFileSync(fileIn, { encoding: 'utf8', flag: 'r' });
-      if (isSplit) {
-        lines = text.split('\n');
-      } else {
-        lines = [text];
-      }
+  if (fileIn) {
+    let text = fs.readFileSync(fileIn, { encoding: 'utf8', flag: 'r' });
+    if (isSplit) {
+      lines = text.split('\n');
     } else {
-      process.exit(0); // no work
+      lines = [text];
     }
+  } else {
+    console.log("No input specified.");
+    process.exit(1); // no work to do
+  }
 
-  async function doWork() {
-    let fullVoice = voice;
-    if (isEleven) {
-      if (!voice) {
-        voice = 'michael';  // default IBM Watson voice
-      }
-      eleven.init();
-      let user = await eleven.getUser();
-      if (user?.subscription) {
-        const s = user.subscription;
-        console.log(`ElevenLabs user, tier:${s.tier} character count/limit:${s.character_count}/${s.character_limit} reset on ${new Date(s.next_character_count_reset_unix*1000)}`);
-      } else {
-        console.log("ElevenLabs user: unknown");
-      }
-      // const data = await eleven.listVoices();
-      // if (data?.voices) {
-      //   for (let voice of data.voices) {
-      //     console.log(`  ${voice.voice_id}: "${voice.name}"`);
-      //   }
-      // } else {
-      //   console.log("ElevenLabs voices: unknown");
-      // }
+  let fullVoice = voice;
+  if (isEleven) {
+    if (!voice) {
+      voice = 'michael';  // default IBM Watson voice
+    }
+    eleven.init();
+    let user = await eleven.getUser();
+    if (user?.subscription) {
+      const s = user.subscription;
+      console.log(`ElevenLabs tier:${s.tier} character count/limit:${s.character_count}/${s.character_limit}`);
+      console.log(`ElevenLabs character limit resets: ${new Date(s.next_character_count_reset_unix * 1000)}`);
     } else {
-      if (!voice){
-        voice = 'michael';  // default IBM Watson voice
-      }
-      switch (voice.toLowerCase()) {
-        case 'michael': fullVoice = 'en-US_MichaelV3Voice'; break;
-        case 'olivia': fullVoice = 'en-US_OliviaV3Voice'; break;
-        case 'henry': fullVoice = 'en-US_HenryV3Voice'; break;
-        case 'allison': fullVoice = 'en-US_AllisonV3Voice'; break;
-        case 'kevin': fullVoice = 'en-US_KevinV3Voice'; break;
-        case 'lisa': fullVoice = 'en-US_LisaV3Voice'; break;
-        case 'emily': fullVoice = 'en-US_EmilyV3Voice'; break;
-        case 'kate': fullVoice = 'en-GB_KateV3Voice'; break;
-        case 'charlotte': fullVoice = 'en-GB_CharlotteV3Voice'; break;
-        case 'james': fullVoice = 'en-GB_JamesV3Voice'; break;
-        case 'craig': fullVoice = 'en-AU_CraigVoice'; break;
-        case 'madison': fullVoice = 'en-AU_MadisonVoice'; break;
-        case 'dieter': fullVoice = 'de-DE_DieterV3Voice'; break;
-        case 'erika': fullVoice = 'de-DE_ErikaV3Voice'; break;
-        case 'birgit': fullVoice = 'de-DE_BirgitV3Voice'; break;
-        default: fullVoice = voice;
-      }
+      console.log("ElevenLabs user: unknown user or invalid API key.");
     }
-
-    let count = 0;
-    for (let line of lines) {
-      let text = line.trim();
-      if (!text) continue;
-      if (text.startsWith('#')) continue;
-
-      count++;
-      // Synthesize speech, correct the wav header, then save to disk
-      // (wav header requires a file length, but this is unknown until after the header is already generated and sent)
-      // note that `repairWavHeaderStream` will read the whole stream into memory in order to process it.
-      // the method returns a Promise that resolves with the repaired buffer
-      let outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
-
-      if (isEleven) {
-        let ttsOptions = {
-          text: text,
-          voice_id: voice,
-        }
-        eleven.synthesize(ttsOptions).then(rs => {
-          Readable.fromWeb(rs)
-          .pipe(fs.createWriteStream(outFileName))
-          .on('finish', () => {
-            console.log('Wrote: ' + outFileName);
-          })
-          .on('error', error => {
-            console.error(`Error on ${outFileName}:`, error);
-          });
-        }).catch(err => {
-            console.log(outFileName + ": " + err);
-        });
-      } else {
-        let ttsOptions = {
-          text: text,
-          voice: fullVoice,
-          accept: `audio/${fileType};rate=${rate}`
-        };
-        const ibm = new TextToSpeechV1({
-          authenticator: new IamAuthenticator({ apikey }),
-          serviceUrl: apiURL
-        });
-        ibm.synthesize(ttsOptions)
-          .then(response => {
-            const audio = response.result;
-            return textToSpeech.repairWavHeaderStream(audio);
-          })
-          .then(repairedFile => {
-            fs.writeFileSync(outFileName, repairedFile);
-            console.log('Wrote: ' + outFileName);
-          })
-          .catch(err => {
-            console.log(outFileName + ": " + err);
-          });
-      }
+  } else {
+    if (!voice){
+      voice = 'michael';  // default IBM Watson voice
+    }
+    switch (voice.toLowerCase()) {
+      case 'michael': fullVoice = 'en-US_MichaelV3Voice'; break;
+      case 'olivia': fullVoice = 'en-US_OliviaV3Voice'; break;
+      case 'henry': fullVoice = 'en-US_HenryV3Voice'; break;
+      case 'allison': fullVoice = 'en-US_AllisonV3Voice'; break;
+      case 'kevin': fullVoice = 'en-US_KevinV3Voice'; break;
+      case 'lisa': fullVoice = 'en-US_LisaV3Voice'; break;
+      case 'emily': fullVoice = 'en-US_EmilyV3Voice'; break;
+      case 'kate': fullVoice = 'en-GB_KateV3Voice'; break;
+      case 'charlotte': fullVoice = 'en-GB_CharlotteV3Voice'; break;
+      case 'james': fullVoice = 'en-GB_JamesV3Voice'; break;
+      case 'craig': fullVoice = 'en-AU_CraigVoice'; break;
+      case 'madison': fullVoice = 'en-AU_MadisonVoice'; break;
+      case 'dieter': fullVoice = 'de-DE_DieterV3Voice'; break;
+      case 'erika': fullVoice = 'de-DE_ErikaV3Voice'; break;
+      case 'birgit': fullVoice = 'de-DE_BirgitV3Voice'; break;
+      default: fullVoice = voice;
     }
   }
 
-  doWork().then(() => { }).catch(err => { console.error(err); });
+  let count = 0;
+  for (let line of lines) {
+    let text = line.trim();
+    if (!text) continue;
+    if (text.startsWith('#')) continue;
 
-} catch (err) {
-  console.error(err);
+    count++;
+    // Synthesize speech, correct the wav header, then save to disk
+    // (wav header requires a file length, but this is unknown until after the header is already generated and sent)
+    // note that `repairWavHeaderStream` will read the whole stream into memory in order to process it.
+    // the method returns a Promise that resolves with the repaired buffer
+    let outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
+
+    if (isEleven) {
+      let ttsOptions = {
+        text: text,
+        voice_id: voice,
+      }
+      eleven.synthesize(ttsOptions).then(rs => {
+        Readable.fromWeb(rs)
+        .pipe(fs.createWriteStream(outFileName))
+        .on('finish', () => {
+          console.log('Wrote: ' + outFileName);
+        })
+        .on('error', error => {
+          console.error(`Error on ${outFileName}:`, error);
+        });
+      }).catch(err => {
+          console.log(outFileName + ": " + err);
+      });
+    } else {
+      let ttsOptions = {
+        text: text,
+        voice: fullVoice,
+        accept: `audio/${fileType};rate=${rate}`
+      };
+      const ibm = new TextToSpeechV1({
+        authenticator: new IamAuthenticator({ apikey }),
+        serviceUrl: apiURL
+      });
+      ibm.synthesize(ttsOptions)
+        .then(response => {
+          const audio = response.result;
+          return textToSpeech.repairWavHeaderStream(audio);
+        })
+        .then(repairedFile => {
+          fs.writeFileSync(outFileName, repairedFile);
+          console.log('Wrote: ' + outFileName);
+        })
+        .catch(err => {
+          console.log(outFileName + ": " + err);
+        });
+    }
+  }
 }
+
+doWork().then(() => { }).catch(err => { console.error(err); });
