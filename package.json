@@ -1,6 +1,6 @@
 {
   "name": "say2file",
-  "version": "1.0.10220",
+  "version": "1.0.109280",
   "main": "say2file.js",
   "scripts": {
     "dev": "node say2file.js Hello there, this is Paul.",
