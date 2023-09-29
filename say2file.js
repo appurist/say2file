@@ -187,77 +187,79 @@ async function doWork() {
     }
   }
 
+  let ttsOptions = { }
+  let ibm = null;
+  if (isEleven) {
+    ttsOptions.voice_id = voice;
+
+    if (fileType === 'mp3') {
+      switch (rate) {
+        case 64:
+          ttsOptions.output_format = 'mp3_44100_64'; break;
+        case 96:
+          ttsOptions.output_format = 'mp3_44100_96'; break;
+        case 128:
+          ttsOptions.output_format = 'mp3_44100_128'; break;
+        case 192:
+        default:
+          ttsOptions.output_format = 'mp3_44100_192'; break;
+      }
+    } else {
+      switch (rate) {
+        case 16000:
+          ttsOptions.output_format = 'pcm_16000'; break;
+        case 22050:
+          ttsOptions.output_format = 'pcm_22050'; break;
+        case 24000:
+          ttsOptions.output_format = 'pcm_24000'; break;
+        case 44100:
+        default:
+          ttsOptions.output_format = 'pcm_44100'; break;
+      }
+    }
+    console.log("Using voice: " + voice + " (" + ttsOptions.output_format + ")");
+  } else {
+    const acceptType = (fileType === 'mp3') ? 'audio/mpeg' : 'audio/wav';
+    ttsOptions = {
+      voice: fullVoice,
+      accept: `${acceptType};rate=${rate}`
+    };
+    ibm = new TextToSpeechV1({
+      authenticator: new IamAuthenticator({ apikey: IBMKEY }),
+      serviceUrl: IBMURL
+    });
+  }
+
   let count = 0;
   for (let line of lines) {
     let text = line.trim();
     if (!text) continue;
 
     count++;
+    ttsOptions.text = text;
     // Synthesize speech, correct the wav header, then save to disk
     // (wav header requires a file length, but this is unknown until after the header is already generated and sent)
     // note that `repairWavHeaderStream` will read the whole stream into memory in order to process it.
     // the method returns a Promise that resolves with the repaired buffer
     let outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
-
     if (isEleven) {
-      let ttsOptions = {
-        text: text,
-        voice_id: voice,
-      }
-      if (fileType === 'mp3') {
-        switch (rate) {
-          case 64:
-            ttsOptions.output_format = 'mp3_44100_64'; break;
-          case 96:
-            ttsOptions.output_format = 'mp3_44100_96'; break;
-          case 128:
-            ttsOptions.output_format = 'mp3_44100_128'; break;
-          case 192:
-          default:
-            ttsOptions.output_format = 'mp3_44100_192'; break;
-        }
-      } else {
-        switch (rate) {
-          case 16000:
-            ttsOptions.output_format = 'pcm_16000'; break;
-          case 22050:
-            ttsOptions.output_format = 'pcm_22050'; break;
-          case 24000:
-            ttsOptions.output_format = 'pcm_24000'; break;
-          case 44100:
-          default:
-            ttsOptions.output_format = 'pcm_44100'; break;
-        }
-      }
-      console.log(" using voice: " + voice + " (" + ttsOptions.output_format + ")");
       eleven.synthesize(ttsOptions).then(rs => {
         if (rs) {
           Readable.fromWeb(rs)
           .pipe(fs.createWriteStream(outFileName))
           .on('finish', () => {
-            console.log('Wrote: ' + outFileName);
+            console.log(' --> ' + outFileName);
           })
           .on('error', error => {
-            console.error(`Error on ${outFileName}:`, error);
+            console.error(` *** Error on ${outFileName}:`, error);
           });
         } else {
-          console.log(outFileName + ": " + "no data");
+          console.log(" *** " + outFileName + ": " + "no data");
         }
       }).catch(err => {
-          console.log(outFileName + ": " + err.message);
+          console.log(" *** " + outFileName + ": " + err.message);
       });
     } else {
-      const acceptType = (fileType === 'mp3') ? 'audio/mpeg' : 'audio/wav';
-
-      let ttsOptions = {
-        text: text,
-        voice: fullVoice,
-        accept: `${acceptType};rate=${rate}`
-      };
-      const ibm = new TextToSpeechV1({
-        authenticator: new IamAuthenticator({ apikey: IBMKEY }),
-        serviceUrl: IBMURL
-      });
       ibm.synthesize(ttsOptions)
         .then(response => {
           const audio = response.result;
@@ -265,10 +267,10 @@ async function doWork() {
         })
         .then(repairedFile => {
           fs.writeFileSync(outFileName, repairedFile);
-          console.log('Wrote: ' + outFileName);
+          console.log(' --> ' + outFileName);
         })
         .catch(err => {
-          console.log(outFileName + ": " + err);
+          console.log(" *** " + outFileName + ": " + err.message);
         });
     }
   }
