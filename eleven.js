@@ -1,3 +1,5 @@
+var Semaphore = require('async-mutex').Semaphore;
+
 const LABSURL = process.env.hasOwnProperty("LABSURL") ? process.env["LABSURL"] : null;
 const LABSKEY = process.env.hasOwnProperty("LABSKEY") ? process.env["LABSKEY"] : null;
 
@@ -9,19 +11,7 @@ const DEFAULT_URL = "https://api.elevenlabs.io";
 let apiURL = LABSURL ?? DEFAULT_URL;
 let apiKey = LABSKEY;
 
-let busyCount = 0;
-
-const sleep = time => new Promise(res => setTimeout(res, time, "done sleeping"));
-
-function isBusy() {
-  return busyCount > 0;
-}
-
-async function waitIdle() {
-  while (busyCount > 0) {
-    await sleep(100);
-  }
-}
+const semaphore = new Semaphore(1);
 
 function init(url, key) {
   apiURL = url ?? apiURL;
@@ -30,30 +20,27 @@ function init(url, key) {
 }
 
 async function apiCall(method, relativeURL, _headers, body) {
-  waitIdle();
-  busyCount++;
-  try {
-    const headers = Object.assign({},
-      {
-        "Content-Type": "application/json",
-        "xi-api-key": apiKey
-      },
-      ..._headers);
-    let options = {
-      method: method || "GET",
-      headers: headers,
+  return await semaphore.runExclusive(async () => {
+    try {
+      const headers = Object.assign({},
+        {
+          "Content-Type": "application/json",
+          "xi-api-key": apiKey
+        },
+        ..._headers);
+      let options = {
+        method: method || "GET",
+        headers: headers,
+      }
+      if (body) {
+        options.body = typeof body === "string" ? body : JSON.stringify(body);
+      }
+
+      return await fetch(apiURL + relativeURL, options);
+    } catch (err) {
+      console.log("apiCall: " + err.message);
     }
-    if (body) {
-      options.body = typeof body === "string" ? body : JSON.stringify(body);
-    }
-    let result = await fetch(apiURL + relativeURL, options);
-    return result;
-  } catch (err) {
-    console.log("apiCall: " + err.message);
-  } finally {
-    busyCount--;
-  }
-  return null;
+  });
 }
 
 async function getUser() {
@@ -111,4 +98,4 @@ async function synthesize(ttsOptions) {
 
 module.exports = {
   LABSURL, LABSKEY, DEFAULT_VOICE, PAULCA_VOICE, YOUTUBE_VOICE,
-  init, getUser, listVoices, synthesize, isBusy, busyCount };
+  init, getUser, listVoices, synthesize };
