@@ -1,8 +1,12 @@
 Welcome. This is some sample text to read out loud. I hope it's coming out great.
 
-This is the third line but should be saved as the second audio file.
+This is the third line but should be saved as the second audio file, if split is enabled.
 
 # This line is commented-out and will be skipped.
 
 # 5K limit is an IBM Watson API limit.
-THis is the eighth line, but it should be saved as the third audio file.  You can place up to 5K of text on each line, as long as it is on a single line. Or you can avoid the minus S option and the whole input file will be saved as a single audio file.
+THis is the eighth line, but it should be saved as the third audio file, if split is enabled.
+You can place up to 5K of text on each line, as long as it is on a single line.
+Or you can avoid the minus S option and the whole input file will be saved as a single audio file.
+
+This is a test. In the event of a real emergency, it wouldn't have been a test. Shitty shitty fuckity fuck fuck.
