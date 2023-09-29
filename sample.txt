@@ -5,6 +5,6 @@ This is the third line but should be saved as the second audio file if split is 
 # This line is commented-out and will be skipped.
 
 # 5K limit is an IBM Watson API limit.
-THis is the eighth line, but it should be saved as the third audio file if split is enabled.
+This is the eighth line, but it should be saved as the third audio file if split is enabled.
 You can place up to 5K of text on each line, as long as it is on a single line.
 Or you can avoid the minus S option and the whole input file will be saved as a single audio file.
