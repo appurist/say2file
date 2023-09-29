@@ -17,11 +17,13 @@ This utility does not provide the API key by default, however you can register f
 
 ## Configuration
 
-See the `.env-example` file. You will need two entries, either an IBM pair or an ElevenLabs pair.  It is also possible to define both and switch back and forth on the command line with the `-p` option.
+Copy `.env-sample` to `.env` and place in the current folder in order to avoid needing to specify configuration parameters on the command line. See the `.env-example` file:
+- For **ElevenLabs**, you only need to add the API key from your profile to the `.env` file. Define a `LABSKEY=api-key-here` in the `.env` file and you're good to go. After logging in, you can find this by selecting the Profile menu item from the drop-down in the top-right on the https://elevenlabs.io/ site.
+- For **IBM Watson**, you should define a pair of definitions in the `.env` file: the `IBMKEY` (the API key) and the `IBMURL` (service link) must be defined.
 
-For the IBM provider, the `IBMKEY` (the API key) and the `IBMURL` (service link) must be defined. For the ElevenLabs provider, the `LABSKEY` (the API key) and the `LABURL` (service link) should be defined.
+**Note:** It is also possible to define *both* providers, and switch back and forth on the command line with the `-p` option.
 
-Copy `.env-sample` to `.env` and place in the current folder in order to avoid needing to specify both on the command line.
+With this in place, you can simply run `say2file -l` to get a list of available voices, or `say2file "Hello there."` to generate a corresponding `audio.mp3` file. You can also run `say2file -f sample.txt` to read the `sample.txt` file and convert it to audio, or `say2file -f sample.txt -s` to split the file into multiple audio files.
 
 ## Syntax
 
@@ -45,7 +47,11 @@ Additional options when using the IBM Watson provider:
 For IBM, the voice can can be: michael, olivia, kevin, lisa, allison, henry, james, kate, charlotte, craig, or madison.
 
 For ElevenLabs, please use the --list or -l option to see the available voices and their IDs. You will need to specify the ID when using the --voice or -w option with ElevenLabs.
+```
 
+You can sample a list of community voices to add to your collection here: https://elevenlabs.io/voice-library and, once added, they will show up in your `--list` output. This will provide the ID. For example, if I add the distinguished older British "Edwin" to my library, it shows as custom ID `dcvIfKGCH8jXVgG77zhi`. Your custom ones will be at the end of the list. I can then use this ID to generate audio with the `--voice` option:
+```
+say2file -w dcvIfKGCH8jXVgG77zhi "Hello there."
 ```
 
 ## Example Usage
@@ -54,15 +60,17 @@ There are two forms of use: simple text on the command line, or text read from a
 
 > `say2file Hello there, this is some text.`
 
-This produces an `audio.wav` output file, using the `en-US_MichaelV3Voice` (Michael) default voice that says the text provided.
+This produces an `audio.mp3` output file, using the `en-US_MichaelV3Voice` (Michael) default voice that says the text provided.
 
-> `say2file -t mp3 Hello there, this is some text.`
+Quotes around the remaining commandline options are not required, but are recommended if you have spaces in your text.
 
-This produces an `audio.mp3` output file, using the `en-US_MichaelV3Voice` (Michael) default voice that says the text provided on the rest of the line.
+> `say2file -p ibm -t wav "Hello there, this is some text."`
 
-> `say2file -p eleven Hello there, this is some text.`
+This produces an `audio.wav` output file, using IBM Watson with the `en-US_MichaelV3Voice` (Michael) default voice that says the text provided on the rest of the line.
 
-This produces an `audio.mp3` output file, using the `say2file` default ElevenLabs voice.
+> `say2file -p 11 "Hello there, this is some text."`
+
+This produces an `audio.mp3` output file, using the `say2file` default ElevenLabs voice. Since this is the default provider, the `-p` option is not actually required.
 
 > `say2file -f sample.txt -s`
 
