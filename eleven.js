@@ -1,6 +1,10 @@
 const LABSURL = process.env.hasOwnProperty("LABSURL") ? process.env["LABSURL"] : null;
 const LABSKEY = process.env.hasOwnProperty("LABSKEY") ? process.env["LABSKEY"] : null;
 
+const PAULCA_VOICE = 'EcOnXAJ3e2odu7bmr9M9';
+const YOUTUBE_VOICE = 'LQj2X4OpUuX9YFC5sCDw';
+const DEFAULT_VOICE = YOUTUBE_VOICE;
+
 const DEFAULT_URL = "https://api.elevenlabs.io";
 let apiURL = LABSURL ?? DEFAULT_URL;
 let apiKey = LABSKEY;
@@ -68,18 +72,24 @@ async function synthesize(ttsOptions) {
         model_id: "eleven_monolingual_v1",
         voice_settings : {
           "stability": 0.5,
-          "similarity_boost": 0.5,
+          "similarity_boost": 0.75,
+          "style": 0.3,
         }
       });
     const response = await apiCall("POST", "/v1/text-to-speech/" + ttsOptions?.voice_id, headers, body);
     if (response.ok) {
-      console.log(response.status, response.statusText, response.type, response.bodyUsed)
+      // console.log(response.status, response.statusText, response.type, response.bodyUsed)
       return response.body;
-    } else throw new Error(response.status + " " + response.statusText);
+    } else {
+      throw new Error(response.status + " " + response.statusText);
+    }
   } catch (err) {
-    console.log("synthesize: " + err.message);
+    // console.log("synthesize: " + err.message);
+    throw err;
   }
-  return null;
+  // return null;
 }
 
-module.exports = { LABSURL, LABSKEY, init, getUser, listVoices, synthesize };
+module.exports = {
+  LABSURL, LABSKEY, DEFAULT_VOICE, PAULCA_VOICE, YOUTUBE_VOICE,
+  init, getUser, listVoices, synthesize, isBusy, busyCount };

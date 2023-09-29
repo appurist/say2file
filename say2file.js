@@ -70,7 +70,7 @@ let provider = args['--provider'] ?? 'ibm';
 let isEleven = provider.toLowerCase() === 'eleven' || provider.toLowerCase() === '11';
 let fileType = args['--type'] ?? 'wav';
 let rate = args['--rate'] ?? 44100;
-let voice = args['--voice'] ?? isEleven ? 'LQj2X4OpUuX9YFC5sCDw' : 'michael';
+let voice = args['--voice'] ?? (isEleven ? eleven.DEFAULT_VOICE : 'michael');
 let apikey = args['--key'] ?? IBMKEY;
 let apiURL = args['--url'] ?? IBMURL;
 let isSplit = args['--split'] || false;
@@ -139,20 +139,24 @@ async function doWork() {
   } else
   if (fileIn) {
     let text = fs.readFileSync(fileIn, { encoding: 'utf8', flag: 'r' });
-    if (isSplit) {
-      lines = text.split('\n');
-    } else {
-      lines = [text];
-    }
+    lines = text.split('\n');
   } else {
     console.log("No input specified.");
     process.exit(1); // no work to do
   }
 
+  lines = lines.filter(line => line.trim().length > 0).filter(line => !line.startsWith('#'));
+  if (!isSplit) {
+    lines = [lines.join('\n')];
+  }
+
   let fullVoice = voice;
   if (isEleven) {
     if (!voice) {
-      voice = 'michael';  // default IBM Watson voice
+      voice = eleven.DEFAULT_VOICE;
+    }
+    if (voice.toLowerCase() === 'paulca') {
+      voice = eleven.PAULCA_VOICE;
     }
     eleven.init();
     let user = await eleven.getUser();
@@ -191,7 +195,6 @@ async function doWork() {
   for (let line of lines) {
     let text = line.trim();
     if (!text) continue;
-    if (text.startsWith('#')) continue;
 
     count++;
     // Synthesize speech, correct the wav header, then save to disk
@@ -205,15 +208,20 @@ async function doWork() {
         text: text,
         voice_id: voice,
       }
+
       eleven.synthesize(ttsOptions).then(rs => {
-        Readable.fromWeb(rs)
-        .pipe(fs.createWriteStream(outFileName))
-        .on('finish', () => {
-          console.log('Wrote: ' + outFileName);
-        })
-        .on('error', error => {
-          console.error(`Error on ${outFileName}:`, error);
-        });
+        if (rs) {
+          Readable.fromWeb(rs)
+          .pipe(fs.createWriteStream(outFileName))
+          .on('finish', () => {
+            console.log('Wrote: ' + outFileName);
+          })
+          .on('error', error => {
+            console.error(`Error on ${outFileName}:`, error);
+          });
+        } else {
+          console.log(outFileName + ": " + "no data");
+        }
       }).catch(err => {
           console.log(outFileName + ": " + err);
       });
