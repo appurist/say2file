@@ -244,7 +244,7 @@ async function doWork() {
           console.log(outFileName + ": " + "no data");
         }
       }).catch(err => {
-          console.log(outFileName + ": " + err);
+          console.log(outFileName + ": " + err.message);
       });
     } else {
       const acceptType = (fileType === 'mp3') ? 'audio/mpeg' : 'audio/wav';
