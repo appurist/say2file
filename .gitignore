@@ -78,3 +78,7 @@ voices.cmd
 *.wav
 
 speak.cmd
+
+out/
+
+*.sfk

@@ -1,6 +1,6 @@
 const Semaphore = require('async-mutex').Semaphore;
 
-const LABSURL = process.env.hasOwnProperty("LABSURL") ? process.env["LABSURL"] : null;
+const LABSURL = process.env.hasOwnProperty("LABSURL") ? process.env["LABSURL"] : "https://api.elevenlabs.io";
 const LABSKEY = process.env.hasOwnProperty("LABSKEY") ? process.env["LABSKEY"] : null;
 
 const PAULCA_VOICE = 'EcOnXAJ3e2odu7bmr9M9';
