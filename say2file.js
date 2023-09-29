@@ -15,6 +15,8 @@ const version = require('./package.json').version;
 
 const IBMKEY = process.env.hasOwnProperty("IBMKEY") ? process.env["IBMKEY"] : null;
 const IBMURL = process.env.hasOwnProperty("IBMURL") ? process.env["IBMURL"] : null;
+const LABSKEY = eleven.LABSKEY;
+const LABSURL = eleven.LABSURL;
 
 function onError(err) {
   console.error("Server error:", err.message);
@@ -66,13 +68,13 @@ try {
 
 let fileIn = args['--file'];
 let fileOut = args['--out'] ?? 'audio';
-let provider = args['--provider'] ?? 'ibm';
+let provider = args['--provider'] ?? 'eleven';
 let isEleven = provider.toLowerCase() === 'eleven' || provider.toLowerCase() === '11';
-let fileType = args['--type'] ?? 'wav';
-let rate = args['--rate'] ?? 44100;
+let fileType = args['--type'] ?? 'mp3';
+let rate = args['--rate'] ?? (isEleven ? '192' : '44100');
 let voice = args['--voice'] ?? (isEleven ? eleven.DEFAULT_VOICE : 'michael');
-let apikey = args['--key'] ?? IBMKEY;
-let apiURL = args['--url'] ?? IBMURL;
+let apikey = args['--key'] ?? (isEleven ? LABSKEY : IBMKEY);
+let apiURL = args['--url'] ?? (isEleven ? LABSURL : IBMURL);
 let isSplit = args['--split'] || false;
 let cmdline = args._.join(' ').trim();
 
@@ -80,27 +82,29 @@ if (args['--version']) {
   console.log("say2file version " + version);
   process.exit(1);
 }
+
 if (args['--help']) {
   console.log("say2file [options] [optional text to convert to audio]");
   console.log("Options: --file or -f with filename (input text file)")
   console.log("         --split or -s (split the input text file into multiple output files)")
   console.log("         --out or -o with rootname (produces rootname.type or rootname-n.type)")
-  console.log("         --provider or -p with provider(ibm, watson, eleven or 11)")
+  console.log("         --provider or -p with provider(ibm, watson, eleven or 11. default is eleven)")
   console.log("         --list or -l (to list available voices)")
   console.log("         --key or -k with the API key to use (if not in .env)")
   console.log("         --version or -v (show version))")
   console.log("         --help or -h or -? (this help))")
 
+  console.log("\nAddition options when using the ElevenLabs provider:");
+  console.log("         --voice or -w (who), choices: default or voice-ID)");
+  console.log("         --type or -t with type, choices: mp3 or wav, mp3 is always 44100")
+  console.log("         --rate or -r with rate, mp3 choices: 64, 96, 128, or 192 (default)")
+  console.log("                                 wav choices: 16000, 22050, 24000, or 44100 (default)")
+
   console.log("\nAddition options when using the IBM Watson provider:");
   console.log("         --url or -u with the service URL to use (if not in .env)")
-  console.log("         --voice or -w (who) (choices: michael olivia kevin lisa allison henry james kate charlotte craig madison)");
-  console.log("         --type or -t with type (choices: wav, mp3, mpeg, flac, ogg)")
-  console.log("         --rate or -r with rate (sample rate, default is 44100)")
-
-  console.log("\nAddition options when using the ElevenLabs provider:");
-  console.log("         --voice or -w (who) (choices: default or voice-ID)");
-  console.log("         --type or -t with type (choices: mp3 or wav, 44100 unless specified)")
-  console.log("         --rate or -r with rate (sample rate, mp3 must be 44100, wav can be 16000, 22050, 24000, 44100)")
+  console.log("         --voice or -w (who), choices: michael olivia kevin lisa allison henry james kate charlotte craig madison");
+  console.log("         --type or -t with type, choices: wav, mp3, mpeg, flac, ogg)")
+  console.log("         --rate or -r with rate, sample rate: default is 44100)")
 
   process.exit(1);
 }
@@ -159,14 +163,6 @@ async function doWork() {
       voice = eleven.PAULCA_VOICE;
     }
     eleven.init();
-    let user = await eleven.getUser();
-    if (user?.subscription) {
-      const s = user.subscription;
-      console.log(`ElevenLabs tier:${s.tier} character count/limit:${s.character_count}/${s.character_limit}`);
-      console.log(`ElevenLabs character limit resets: ${new Date(s.next_character_count_reset_unix * 1000)}`);
-    } else {
-      console.log("ElevenLabs user: unknown user or invalid API key.");
-    }
   } else {
     if (!voice){
       voice = 'michael';  // default IBM Watson voice
@@ -209,18 +205,28 @@ async function doWork() {
         voice_id: voice,
       }
       if (fileType === 'mp3') {
-        ttsOptions.output_format = 'mp3_44100';
+        switch (rate) {
+          case 64:
+            ttsOptions.output_format = 'mp3_44100_64'; break;
+          case 96:
+            ttsOptions.output_format = 'mp3_44100_96'; break;
+          case 128:
+            ttsOptions.output_format = 'mp3_44100_128'; break;
+          case 192:
+          default:
+            ttsOptions.output_format = 'mp3_44100_192'; break;
+        }
       } else {
         switch (rate) {
-          case '16000':
-            ttsOptions.output_format = 'wav_16000'; break;
-          case '22050':
-            ttsOptions.output_format = 'wav_22050'; break;
-          case '24000':
-            ttsOptions.output_format = 'wav_24000'; break;
-          case '44100':
+          case 16000:
+            ttsOptions.output_format = 'pcm_16000'; break;
+          case 22050:
+            ttsOptions.output_format = 'pcm_22050'; break;
+          case 24000:
+            ttsOptions.output_format = 'pcm_24000'; break;
+          case 44100:
           default:
-            ttsOptions.output_format = 'wav_44100'; break;
+            ttsOptions.output_format = 'pcm_44100'; break;
         }
       }
       console.log(" using voice: " + voice + " (" + ttsOptions.output_format + ")");
@@ -249,13 +255,13 @@ async function doWork() {
         accept: `${acceptType};rate=${rate}`
       };
       const ibm = new TextToSpeechV1({
-        authenticator: new IamAuthenticator({ apikey }),
-        serviceUrl: apiURL
+        authenticator: new IamAuthenticator({ apikey: IBMKEY }),
+        serviceUrl: IBMURL
       });
       ibm.synthesize(ttsOptions)
         .then(response => {
           const audio = response.result;
-          return textToSpeech.repairWavHeaderStream(audio);
+          return ibm.repairWavHeaderStream(audio);
         })
         .then(repairedFile => {
           fs.writeFileSync(outFileName, repairedFile);
@@ -264,6 +270,19 @@ async function doWork() {
         .catch(err => {
           console.log(outFileName + ": " + err);
         });
+    }
+  }
+  if (isEleven) {
+    let user = await eleven.getUser();
+    if (user?.subscription) {
+      const s = user.subscription;
+      const remain = s.character_limit - s.character_count;
+      let percent = Math.floor((remain / s.character_limit) * 100);
+      if (percent === 0 && remain > 0) percent = 1;
+      console.log(`ElevenLabs "${s.tier}" tier: ${remain} (${percent}%) remain of ${s.character_limit} characters.`);
+      console.log(`ElevenLabs character limit resets: ${new Date(s.next_character_count_reset_unix * 1000)}`);
+    } else {
+      console.log("ElevenLabs user: unknown user or invalid API key.");
     }
   }
 }

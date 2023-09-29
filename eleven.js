@@ -1,4 +1,4 @@
-var Semaphore = require('async-mutex').Semaphore;
+const Semaphore = require('async-mutex').Semaphore;
 
 const LABSURL = process.env.hasOwnProperty("LABSURL") ? process.env["LABSURL"] : null;
 const LABSKEY = process.env.hasOwnProperty("LABSKEY") ? process.env["LABSKEY"] : null;
@@ -18,6 +18,11 @@ function init(url, key) {
   apiKey = key ?? apiKey;
   return { apiURL, apikey: apiKey};
 }
+
+const FORMATS = [
+  'mp3_44100_64', 'mp3_44100_96', 'mp3_44100_128', 'mp3_44100_192',
+  'pcm_16000', 'pcm_22050', 'pcm_24000', 'pcm_44100'
+];
 
 async function apiCall(method, relativeURL, _headers, body) {
   return await semaphore.runExclusive(async () => {
@@ -100,5 +105,6 @@ async function synthesize(ttsOptions) {
 }
 
 module.exports = {
-  LABSURL, LABSKEY, DEFAULT_VOICE, PAULCA_VOICE, YOUTUBE_VOICE,
+  LABSURL, LABSKEY, FORMATS,
+  DEFAULT_VOICE, PAULCA_VOICE, YOUTUBE_VOICE,
   init, getUser, listVoices, synthesize };
