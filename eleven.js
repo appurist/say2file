@@ -9,6 +9,20 @@ const DEFAULT_URL = "https://api.elevenlabs.io";
 let apiURL = LABSURL ?? DEFAULT_URL;
 let apiKey = LABSKEY;
 
+let busyCount = 0;
+
+const sleep = time => new Promise(res => setTimeout(res, time, "done sleeping"));
+
+function isBusy() {
+  return busyCount > 0;
+}
+
+async function waitIdle() {
+  while (busyCount > 0) {
+    await sleep(100);
+  }
+}
+
 function init(url, key) {
   apiURL = url ?? apiURL;
   apiKey = key ?? apiKey;
@@ -16,6 +30,8 @@ function init(url, key) {
 }
 
 async function apiCall(method, relativeURL, _headers, body) {
+  waitIdle();
+  busyCount++;
   try {
     const headers = Object.assign({},
       {
@@ -30,9 +46,12 @@ async function apiCall(method, relativeURL, _headers, body) {
     if (body) {
       options.body = typeof body === "string" ? body : JSON.stringify(body);
     }
-    return await fetch(apiURL + relativeURL, options);
+    let result = await fetch(apiURL + relativeURL, options);
+    return result;
   } catch (err) {
     console.log("apiCall: " + err.message);
+  } finally {
+    busyCount--;
   }
   return null;
 }
