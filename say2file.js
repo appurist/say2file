@@ -99,8 +99,8 @@ if (args['--help']) {
 
   console.log("\nAddition options when using the ElevenLabs provider:");
   console.log("         --voice or -w (who) (choices: default or voice-ID)");
-  console.log("         --type or -t with type (choices: mp3)")
-  console.log("         --rate or -r with rate (sample rate, default is 44100)")
+  console.log("         --type or -t with type (choices: mp3 or wav, 44100 unless specified)")
+  console.log("         --rate or -r with rate (sample rate, mp3 must be 44100, wav can be 16000, 22050, 24000, 44100)")
 
   process.exit(1);
 }
@@ -208,7 +208,22 @@ async function doWork() {
         text: text,
         voice_id: voice,
       }
-
+      if (fileType === 'mp3') {
+        ttsOptions.output_format = 'mp3_44100';
+      } else {
+        switch (rate) {
+          case '16000':
+            ttsOptions.output_format = 'wav_16000'; break;
+          case '22050':
+            ttsOptions.output_format = 'wav_22050'; break;
+          case '24000':
+            ttsOptions.output_format = 'wav_24000'; break;
+          case '44100':
+          default:
+            ttsOptions.output_format = 'wav_44100'; break;
+        }
+      }
+      console.log(" using voice: " + voice + " (" + ttsOptions.output_format + ")");
       eleven.synthesize(ttsOptions).then(rs => {
         if (rs) {
           Readable.fromWeb(rs)
@@ -226,10 +241,12 @@ async function doWork() {
           console.log(outFileName + ": " + err);
       });
     } else {
+      const acceptType = (fileType === 'mp3') ? 'audio/mpeg' : 'audio/wav';
+
       let ttsOptions = {
         text: text,
         voice: fullVoice,
-        accept: `audio/${fileType};rate=${rate}`
+        accept: `${acceptType};rate=${rate}`
       };
       const ibm = new TextToSpeechV1({
         authenticator: new IamAuthenticator({ apikey }),

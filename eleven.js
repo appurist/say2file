@@ -69,7 +69,9 @@ async function listVoices() {
 
 async function synthesize(ttsOptions) {
   try {
-    const headers = [{"Accept": "audio/mpeg"}];
+    const acceptType = ttsOptions.output_format.startsWith("mp3_") ? 'audio/mpeg' : 'audio/wav';
+    const headers = [{"Accept": acceptType}];
+    const output_format = ttsOptions.output_format;
 
     // let body = Object.assign({}, ttsOptions, { "voice_id": ttsOptions?.voice_id });
     let body = Object.assign({},
@@ -82,7 +84,8 @@ async function synthesize(ttsOptions) {
           "style": 0.3,
         }
       });
-    const response = await apiCall("POST", "/v1/text-to-speech/" + ttsOptions?.voice_id, headers, body);
+    delete body.output_format;
+    const response = await apiCall("POST", `/v1/text-to-speech/${ttsOptions?.voice_id}?output_format=${output_format}`, headers, body);
     if (response.ok) {
       // console.log(response.status, response.statusText, response.type, response.bodyUsed)
       return response.body;
