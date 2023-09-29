@@ -10,7 +10,7 @@
       "name": "IBM",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}\\say2file.js",
-      "args": ["-f", "sample.txt", "-s"]
+      "args": ["-p", "ibm", "-f", "sample.txt", "-s"]
     },
     {
       "type": "node",
@@ -34,7 +34,7 @@
       "name": "Eleven Small WAV",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}\\say2file.js",
-      "args": ["-t", "wav", "-r", "44100", "Hello there, this is a test."]
+      "args": ["-p", "11", "-t", "wav", "-r", "44100", "Hello there, this is a test."]
     },
     {
       "type": "node",
@@ -50,7 +50,6 @@
       "name": "Eleven",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}\\say2file.js",
-      // "args": ["-p", "11", "Hello there, this is a test."]
       "args": ["-p", "11", "-f", "sample.txt", "-s"]
     },
     {
