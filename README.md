@@ -35,11 +35,11 @@ Options: --file or -f with filename (input text file)
          --provider or -p with provider(ibm, watson, eleven or 11. default is eleven)
          --list or -l (to list available voices)
          --key or -k with the API key to use (if not in .env)
-         --version or -v (show version))
-         --help or -h or -? (this help))
+         --version or -v (show version)
+         --help or -h or -? (this help)
 
 Addition options when using the ElevenLabs provider:
-         --voice or -w (who), choices: default or voice-ID)
+         --voice or -w (who), choices: default or voice-ID
          --type or -t with type, choices: mp3 or wav, mp3 is always 44100
          --rate or -r with rate, mp3 choices: 64, 96, 128, or 192 (default)
                                  wav choices: 16000, 22050, 24000, or 44100 (default)
@@ -47,8 +47,8 @@ Addition options when using the ElevenLabs provider:
 Addition options when using the IBM Watson provider:
          --url or -u with the service URL to use (if not in .env)
          --voice or -w (who), choices: michael olivia kevin lisa allison henry james kate charlotte craig madison
-         --type or -t with type, choices: wav, mp3, mpeg, flac, ogg)
-         --rate or -r with rate, sample rate: default is 44100)
+         --type or -t with type, choices: wav, mp3, mpeg, flac, ogg
+         --rate or -r with rate, sample rate: default is 44100
 
 For IBM, the voice can can be: michael, olivia, kevin, lisa, allison, henry, james, kate, charlotte, craig, or madison.
 
