@@ -2,28 +2,34 @@
 Text-to-speech, speaks text into a sound file.
 
 This utility supports too different AI-based text-to-speech providers:
-- IBM's Watson AI text-to-speech API (https://cloud.ibm.com/services/text-to-speech/)
-- ElevenLabs' text-to-speech API (https://docs.elevenlabs.io/)
+- [ElevenLabs' text-to-speech API](https://docs.elevenlabs.io/) (recommended)
+- [IBM's Watson AI text-to-speech API](https://cloud.ibm.com/services/text-to-speech/) (also supported)
 
 When enabled with an API key from the provider, it can to convert text to one or more audio files.
 
 ## API KEY REQUIRED
 
-This utility does not provide the API key by default, however you can register for one by:
+Both providers require an API key. This utility does not provide the required API key, however you can register for one by:
+- creating an account on [https://elevenlabs.io](https://elevenlabs.io) and getting your API key from your profile (see documentation here: https://docs.elevenlabs.io/api-reference/quick-start/authentication). Or, by
 - creating an account on [https://cloud.ibm.com/](https://cloud.ibm.com/) and [searching for "text-to-speech"](https://cloud.ibm.com/services/text-to-speech/) in the list of services. The free tier provides text-to-speech usage limits that are ample for most personal projects, or
-- creating an account on [https://elevenlabs.io](https://elevenlabs.io) and getting your API key from your profile (see documentation here: https://docs.elevenlabs.io/api-reference/quick-start/authentication).
 
 
 
 ## Configuration
 
 Copy `.env-sample` to `.env` and place in the current folder in order to avoid needing to specify configuration parameters on the command line. See the `.env-example` file:
-- For **ElevenLabs**, you only need to add the API key from your profile to the `.env` file. Define a `LABSKEY=api-key-here` in the `.env` file and you're good to go. After logging in, you can find this by selecting the Profile menu item from the drop-down in the top-right on the https://elevenlabs.io/ site.
+- For **ElevenLabs**, you only need to add the API key from your profile to the `.env` file. Define a `LABSKEY=api-key-here` (see above) in the `.env` file and you're good to go.
 - For **IBM Watson**, you should define a pair of definitions in the `.env` file: the `IBMKEY` (the API key) and the `IBMURL` (service link) must be defined.
 
 **Note:** It is also possible to define *both* providers, and switch back and forth on the command line with the `-p` option.
 
-With this in place, you can simply run `say2file -l` to get a list of available voices, or `say2file "Hello there."` to generate a corresponding `audio.mp3` file. You can also run `say2file -f sample.txt` to read the `sample.txt` file and convert it to audio, or `say2file -f sample.txt -s` to split the file into multiple audio files.
+With this in place, you can simply run:
+- `say2file -l` to get a list of available voices, or
+- `say2file "Hello there."` to generate a corresponding `audio.mp3` file.You can also run
+- `say2file -f sample.txt` to read the `sample.txt` file and convert it to audio, or
+- `say2file -f sample.txt -s` to split the file into multiple audio files.
+
+These are just some examples. See the syntax below for more options.
 
 ## Syntax
 
@@ -40,9 +46,10 @@ Options: --file or -f with filename (input text file)
 
 Addition options when using the ElevenLabs provider:
          --voice or -w (who), choices: default or voice-ID
-         --type or -t with type, choices: mp3 or wav, mp3 is always 44100
-         --rate or -r with rate, mp3 choices: 64, 96, 128, or 192 (default)
-                                 wav choices: 16000, 22050, 24000, or 44100 (default)
+         --model or -m, choices: e1, m1, m2 for english/multilingual
+         --type or -t with type, choices: mp3 or wav
+         --rate or -r with rate, mp3 choices: 64, 96, 128, or 192
+                                 wav choices: 16000, 22050, 24000, or 44100
 
 Addition options when using the IBM Watson provider:
          --url or -u with the service URL to use (if not in .env)
@@ -55,10 +62,18 @@ For IBM, the voice can can be: michael, olivia, kevin, lisa, allison, henry, jam
 For ElevenLabs, please use the --list or -l option to see the available voices and their IDs. You will need to specify the ID when using the --voice or -w option with ElevenLabs.
 ```
 
-You can sample a list of community voices to add to your collection here: https://elevenlabs.io/voice-library and, once added, they will show up in your `--list` output. This will provide the ID. For example, if I add the distinguished older British "Edwin" to my library, it shows as custom ID `dcvIfKGCH8jXVgG77zhi`. Your custom ones will be at the end of the list. I can then use this ID to generate audio with the `--voice` option:
+**Note:** Free tier users of *ElevenLabs* are limited to `mp3_44100_128` format (MP3 output with 44100 Hz at 128 kbps audio files). If you're a free tier user, for best quality, you should avoid specifying the `--format` or `--rate` options and let this utility use the default values. There is also a problem with downloading .wav files from ElevenLabs, so you should avoid specifying the `--type` option as well, or use `--provider ibm` to use IBM Watson instead for WAV audio.
+
+### Voices
+
+You can sample a list of community voices to add to your collection here: https://elevenlabs.io/voice-library and, once added, they will show up in your `--list` output. This will provide the ID. For example, if I add the distinguished older British "Edwin" to *my* library, it shows as custom ID `dcvIfKGCH8jXVgG77zhi`. Similarly, your custom ones will be at the end of the list. I can then use this ID to generate audio with the `--voice` option:
+
+
 ```
 say2file -w dcvIfKGCH8jXVgG77zhi "Hello there."
 ```
+
+You can do the same with your own custom IDs added to [your ElevenLabs library](https://elevenlabs.io/voice-library) through the ElevenLabs website.
 
 ## Example Usage
 
