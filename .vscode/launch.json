@@ -26,7 +26,7 @@
       "name": "Eleven Small MP3",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}\\say2file.js",
-      "args": ["-p", "11", "-t", "mp3", "Hello there, this is a test."]
+      "args": ["-p", "11", "-m", "m2", "-t", "mp3", "Hello there, this is a test."]
     },
     {
       "type": "node",
