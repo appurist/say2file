@@ -113,8 +113,8 @@ async function synthesize(ttsOptions) {
         model_id: model_id,
         voice_settings : {
           "stability": 0.75,
-          "similarity_boost": 0.5,
-          "style": 0.3,
+          "similarity_boost": 0.75,
+          "style": 0.0,
         }
       });
     delete body.output_format;
