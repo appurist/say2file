@@ -1,7 +1,7 @@
 # say2file
 Text-to-speech, speaks text into a sound file.
 
-This utility supports too different AI-based text-to-speech providers:
+This utility supports two different AI-based text-to-speech providers:
 - [ElevenLabs' text-to-speech API](https://docs.elevenlabs.io/) (recommended)
 - [IBM's Watson AI text-to-speech API](https://cloud.ibm.com/services/text-to-speech/) (also supported)
 
