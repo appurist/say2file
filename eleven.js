@@ -5,11 +5,18 @@ const LABSKEY = process.env.hasOwnProperty("LABSKEY") ? process.env["LABSKEY"] :
 
 const PAULCA_VOICE = 'EcOnXAJ3e2odu7bmr9M9';
 const YOUTUBE_VOICE = 'LQj2X4OpUuX9YFC5sCDw';
-const DEFAULT_VOICE = YOUTUBE_VOICE;
+const MICHAEL_VOICE = 'flq6f7yk4E4fJM5XTYuZ';
+const MATTHEW_VOICE = 'Yko7PKHZNXotIFUBG7I9';
+
+const DEFAULT_VOICE = MICHAEL_VOICE;
+
+const DEFAULT_MODEL = 'eleven_multilingual_v2';
 
 const DEFAULT_URL = "https://api.elevenlabs.io";
 let apiURL = LABSURL ?? DEFAULT_URL;
 let apiKey = LABSKEY;
+
+let cachedUser = null;
 
 const semaphore = new Semaphore(1);
 
@@ -53,10 +60,12 @@ async function getUser() {
     const response = await apiCall("GET", "/v1/user", [], null);
     const data = await response.json();
     // console.log("user: " + JSON.stringify(data, null, 2));
+    cachedUser = data;
     return data;
   } catch (err) {
     console.log("getUser: " + err.message);
   }
+  cachedUser = null;
   return null;
 }
 
@@ -74,18 +83,37 @@ async function listVoices() {
 
 async function synthesize(ttsOptions) {
   try {
-    const acceptType = ttsOptions.output_format.startsWith("mp3_") ? 'audio/mpeg' : 'audio/wav';
+    const user = await getUser();
+    const tierLevel = user?.subscription?.tier ?? 'free';
+    const isMP3 = ttsOptions.output_format.startsWith("mp3_");
+    if (tierLevel === 'free') {
+      if (ttsOptions.output_format === 'mp3_44100_192') {
+        console.log("Free tier is limited to mp3_44100_128 format.");
+        ttsOptions.output_format = 'mp3_44100_128';
+      }
+    }
+    const acceptType = isMP3 ? 'audio/mpeg' : 'audio/wav';
     const headers = [{"Accept": acceptType}];
     const output_format = ttsOptions.output_format;
-
+    let model_id = ttsOptions.model_id;
+    switch (ttsOptions.model_id) {
+      case 'e1': model_id = 'eleven_monolingual_v1'; break;
+      case 'e2': model_id = 'eleven_monolingual_v2'; break;
+      case 'm1': model_id = 'eleven_multilingual_v1'; break;
+      case 'm2': model_id = 'eleven_multilingual_v2'; break;
+      case '': model_id = DEFAULT_MODEL; break;
+      case null: model_id = DEFAULT_MODEL; break;
+      case undefined: model_id = DEFAULT_MODEL; break;
+    }
+    console.log("Using model: " + model_id);
     // let body = Object.assign({}, ttsOptions, { "voice_id": ttsOptions?.voice_id });
     let body = Object.assign({},
       ttsOptions,
       {
-        model_id: "eleven_monolingual_v1",
+        model_id: model_id,
         voice_settings : {
-          "stability": 0.5,
-          "similarity_boost": 0.75,
+          "stability": 0.75,
+          "similarity_boost": 0.5,
           "style": 0.3,
         }
       });
@@ -95,6 +123,15 @@ async function synthesize(ttsOptions) {
       // console.log(response.status, response.statusText, response.type, response.bodyUsed)
       return response.body;
     } else {
+      if (response.type === 'basic') {
+        const json = await response.text();
+        const data = JSON.parse(json);
+        const detail = data?.detail;
+        const msg = detail?.message ?? data?.message ?? response.statusText ?? detail ?? json;
+        // console.log(response.status, response.statusText, response.type, msg);
+        throw new Error(response.status + " " + msg);
+      }
+      // return msg;
       throw new Error(response.status + " " + response.statusText);
     }
   } catch (err) {

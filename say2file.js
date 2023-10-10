@@ -40,6 +40,7 @@ try {
     '--voice': String,
     '--split': Boolean,
     '--list': Boolean,   // list voices
+    '--model': String,   // e.g. e1=eleven_monolingual_v1, m2=eleven_multilingual_v2
 
     '--help': Boolean,
     '--verbose': Boolean,
@@ -56,6 +57,7 @@ try {
     '-w': '--voice',
     '-s': '--split',
     '-l': '--list',
+    '-m': '--model',
 
     '-v': '--version',
     '-h': '--help',
@@ -77,7 +79,7 @@ let apikey = args['--key'] ?? (isEleven ? LABSKEY : IBMKEY);
 let apiURL = args['--url'] ?? (isEleven ? LABSURL : IBMURL);
 let isSplit = args['--split'] || false;
 let cmdline = args._.join(' ').trim();
-
+let model = args['--model'] ?? (isEleven ? eleven.DEFAULT_MODEL : '');
 if (args['--version']) {
   console.log("say2file version " + version);
   process.exit(1);
@@ -95,10 +97,11 @@ if (args['--help']) {
   console.log("         --help or -h or -? (this help))")
 
   console.log("\nAddition options when using the ElevenLabs provider:");
-  console.log("         --voice or -w (who), choices: default or voice-ID)");
-  console.log("         --type or -t with type, choices: mp3 or wav, mp3 is always 44100")
-  console.log("         --rate or -r with rate, mp3 choices: 64, 96, 128, or 192 (default)")
-  console.log("                                 wav choices: 16000, 22050, 24000, or 44100 (default)")
+  console.log("         --voice or -w (who), choices: default or voice-ID");
+  console.log("         --model or -m, choices: e1, m1, m2 for english/multilingual");
+  console.log("         --type or -t with type, choices: mp3 or wav")
+  console.log("         --rate or -r with rate, mp3 choices: 64, 96, 128, or 192")
+  console.log("                                 wav choices: 16000, 22050, 24000, or 44100")
 
   console.log("\nAddition options when using the IBM Watson provider:");
   console.log("         --url or -u with the service URL to use (if not in .env)")
@@ -191,6 +194,9 @@ async function doWork() {
   let ibm = null;
   if (isEleven) {
     ttsOptions.voice_id = voice;
+    if (model) {
+      ttsOptions.model_id = model;
+    }
 
     if (fileType === 'mp3') {
       switch (rate) {
