@@ -1,7 +1,13 @@
 # say2file
 Text-to-speech, speaks text into a sound file.
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=appurist_say2file&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=appurist_say2file)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=appurist_say2file&metric=bugs)](https://sonarcloud.io/summary/new_code?id=appurist_say2file) 
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=appurist_say2file&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=appurist_say2file)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=appurist_say2file&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=appurist_say2file)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=appurist_say2file&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=appurist_say2file)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=appurist_say2file&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=appurist_say2file)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=appurist_say2file&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=appurist_say2file)
+
 
 This utility supports two different AI-based text-to-speech providers:
 - [ElevenLabs' text-to-speech API](https://docs.elevenlabs.io/) (recommended)
