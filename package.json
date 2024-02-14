@@ -16,7 +16,7 @@
     "arg": "^5.0.2",
     "async-mutex": "^0.4.1",
     "dotenv-defaults": "^2.0.2",
-    "ibm-watson": "^6.2.2",
+    "ibm-watson": "^8.0.0",
     "pkg": "^5.8.1"
   }
 }
