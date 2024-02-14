@@ -47,10 +47,18 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Eleven",
+      "name": "Eleven Split",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}\\say2file.js",
       "args": ["-p", "11", "-f", "sample.txt", "-s"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Eleven Split 2",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}\\say2file.js",
+      "args": ["-f", "sample2.txt", "-s"]
     },
     {
       "type": "node",
