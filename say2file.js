@@ -241,15 +241,15 @@ async function doWork() {
     let text = line.trim();
     if (!text) continue;
 
-    count++;
-    ttsOptions.text = text;
+    let options = Object.assign({}, ttsOptions, { text: text });
     // Synthesize speech, correct the wav header, then save to disk
     // (wav header requires a file length, but this is unknown until after the header is already generated and sent)
     // note that `repairWavHeaderStream` will read the whole stream into memory in order to process it.
     // the method returns a Promise that resolves with the repaired buffer
-    let outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
     if (isEleven) {
-      eleven.synthesize(ttsOptions).then(rs => {
+      eleven.synthesize(options).then(rs => {
+        count++;
+        const outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
         if (rs) {
           Readable.fromWeb(rs)
           .pipe(fs.createWriteStream(outFileName))
@@ -272,6 +272,8 @@ async function doWork() {
           return ibm.repairWavHeaderStream(audio);
         })
         .then(repairedFile => {
+          count++;
+          const outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
           fs.writeFileSync(outFileName, repairedFile);
           console.log(' --> ' + outFileName);
         })
