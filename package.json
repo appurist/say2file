@@ -1,6 +1,6 @@
 {
   "name": "say2file",
-  "version": "2.1.111050",
+  "version": "2.2.202130",
   "main": "say2file.js",
   "scripts": {
     "dev": "node say2file.js Hello there, this is Paul.",
@@ -14,7 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "arg": "^5.0.2",
-    "async-mutex": "^0.4.0",
+    "async-mutex": "^0.4.1",
     "dotenv-defaults": "^2.0.2",
     "ibm-watson": "^6.2.2",
     "pkg": "^5.8.1"
