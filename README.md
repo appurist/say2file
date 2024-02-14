@@ -1,5 +1,6 @@
 # say2file
 Text-to-speech, speaks text into a sound file.
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=appurist_say2file&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=appurist_say2file)
 
 This utility supports two different AI-based text-to-speech providers:
 - [ElevenLabs' text-to-speech API](https://docs.elevenlabs.io/) (recommended)
