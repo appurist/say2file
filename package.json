@@ -12,6 +12,7 @@
   },
   "author": "Paul Whittemore <dev@appurist.com>",
   "license": "MIT",
+  "packageManager": "pnpm@9.0.0",
   "dependencies": {
     "arg": "^5.0.2",
     "async-mutex": "^0.4.1",
