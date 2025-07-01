@@ -7,9 +7,7 @@ require('dotenv-defaults/config');
 
 const eleven = require('./eleven.js');
 
-const TextToSpeechV1 = require('ibm-watson/text-to-speech/v1');
-const { IamAuthenticator } = require('ibm-watson/auth');
-const { get } = require('node:http');
+const { TextToSpeechV1, IamAuthenticator } = require('./ibm-watson-fetch.js');
 
 const version = require('./package.json').version;
 
@@ -75,8 +73,6 @@ let isEleven = provider.toLowerCase() === 'eleven' || provider.toLowerCase() ===
 let fileType = args['--type'] ?? 'mp3';
 let rate = args['--rate'] ?? (isEleven ? '192' : '44100');
 let voice = args['--voice'] ?? (isEleven ? eleven.DEFAULT_VOICE : 'michael');
-let apikey = args['--key'] ?? (isEleven ? LABSKEY : IBMKEY);
-let apiURL = args['--url'] ?? (isEleven ? LABSURL : IBMURL);
 let isSplit = args['--split'] || false;
 let cmdline = args._.join(' ').trim();
 let model = args['--model'] ?? (isEleven ? eleven.DEFAULT_MODEL : '');
@@ -130,8 +126,6 @@ async function listElevenVoices()
 
 async function doWork() {
   if (args['--list']) {
-    let rc = 0;
-
     if (isEleven) {
       await listElevenVoices();
     } else {
@@ -165,7 +159,9 @@ async function doWork() {
     if (voice.toLowerCase() === 'paulca') {
       voice = eleven.PAULCA_VOICE;
     }
-    eleven.init();
+    const elevenApiKey = args['--key'] ?? LABSKEY;
+    const elevenApiUrl = args['--url'] ?? LABSURL;
+    eleven.init(elevenApiUrl, elevenApiKey);
   } else {
     if (!voice){
       voice = 'michael';  // default IBM Watson voice
@@ -230,9 +226,11 @@ async function doWork() {
       voice: fullVoice,
       accept: `${acceptType};rate=${rate}`
     };
+    const ibmApiKey = args['--key'] ?? IBMKEY;
+    const ibmServiceUrl = args['--url'] ?? IBMURL;
     ibm = new TextToSpeechV1({
-      authenticator: new IamAuthenticator({ apikey: IBMKEY }),
-      serviceUrl: IBMURL
+      authenticator: new IamAuthenticator({ apikey: ibmApiKey }),
+      serviceUrl: ibmServiceUrl
     });
   }
 
@@ -266,14 +264,14 @@ async function doWork() {
           console.log(" *** " + outFileName + ": " + err.message);
       });
     } else {
+      count++;
+      const outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
       ibm.synthesize(ttsOptions)
         .then(response => {
           const audio = response.result;
           return ibm.repairWavHeaderStream(audio);
         })
         .then(repairedFile => {
-          count++;
-          const outFileName = isSplit ? `${fileOut}-${count}.${fileType}` : `${fileOut}.${fileType}`;
           fs.writeFileSync(outFileName, repairedFile);
           console.log(' --> ' + outFileName);
         })
