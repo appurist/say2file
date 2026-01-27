@@ -2,8 +2,7 @@ const fs = require('node:fs');
 const arg = require('arg');
 const { Readable } = require('node:stream');
 
-// read .env and .env.defaults
-require('dotenv-defaults/config');
+// Bun loads .env automatically
 
 const eleven = require('./eleven.js');
 

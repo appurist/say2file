@@ -3,20 +3,18 @@
   "version": "3.0.250701",
   "main": "say2file.js",
   "scripts": {
-    "dev": "node say2file.js Hello there, this is Paul.",
-    "test": "node say2file.js -f sample.txt -s",
-    "build": "pkg --options no-warnings say2file.js -t latest -o say2file",
-    "build:win": "pkg --options no-warnings -t latest-win-x64 say2file.js -o say2file.exe",
-    "build:linux": "pkg --options no-warnings -t latest-linux-x64 say2file.js -o say2file",
-    "build:mac": "pkg --options no-warnings -t latest-macos-x64 say2file.js -o say2file-macos"
+    "dev": "bun say2file.js Hello there, this is Paul.",
+    "test": "bun say2file.js -f sample.txt -s",
+    "start": "bun say2file.js",
+    "build:linux": "bun build --compile --target=bun-linux-x64 say2file.js --outfile say2file",
+    "build:win": "bun build --compile --target=bun-windows-x64 say2file.js --outfile say2file.exe",
+    "build:mac-x64": "bun build --compile --target=bun-darwin-x64 say2file.js --outfile say2file-macos-x64",
+    "build:mac-arm64": "bun build --compile --target=bun-darwin-arm64 say2file.js --outfile say2file-macos-arm64"
   },
   "author": "Paul Whittemore <dev@appurist.com>",
   "license": "MIT",
-  "packageManager": "pnpm@9.0.0",
   "dependencies": {
     "arg": "^5.0.2",
-    "async-mutex": "^0.4.1",
-    "dotenv-defaults": "^2.0.2",
-    "pkg": "^5.8.1"
+    "async-mutex": "^0.5.0"
   }
 }
